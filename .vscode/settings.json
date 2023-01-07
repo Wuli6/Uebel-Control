@@ -10,5 +10,6 @@
     "idf.portWin": "COM7",
     "idf.pythonBinPathWin": "C:\\Users\\Chris\\.espressif\\python_env\\idf4.4_py3.8_env\\Scripts\\python.exe",
     "idf.toolsPathWin": "C:\\Users\\Chris\\.espressif",
-    "idf.flashType": "JTAG"
+    "idf.flashType": "JTAG",
+    "git.ignoreLimitWarning": true
 }
