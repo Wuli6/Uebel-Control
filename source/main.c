@@ -9,11 +9,14 @@
 #define GPIO_FAN0_PWM           32
 #define GPIO_FAN1_PWM           33
 #define GPIO_HOAZLED_PWM        16
+#define GPIO_GEBER_TASTER       25
 
 #define PWM_CHANNEL_LED         LEDC_CHANNEL_2
 #define PWM_CHANNEL_FAN0        LEDC_CHANNEL_0
 #define PWM_CHANNEL_FAN1        LEDC_CHANNEL_1
 #define PWM_CHANNEL_HOAZLED     LEDC_CHANNEL_3
+
+#define LED_DIM                 3400
 
 
 void Startup()
@@ -90,27 +93,44 @@ void Startup()
     gpio_reset_pin(GPIO_HEIZMATTE_RELAIS);
     gpio_set_direction(GPIO_LED_RELAIS, GPIO_MODE_OUTPUT);  //LED
     gpio_set_direction(GPIO_HEIZMATTE_RELAIS, GPIO_MODE_OUTPUT);  // Heizmatte
+    gpio_set_direction(GPIO_GEBER_TASTER, GPIO_MODE_INPUT);  // Taster Drehgeber
+    gpio_set_pull_mode(GPIO_GEBER_TASTER, GPIO_PULLUP_ONLY);
     gpio_set_level(GPIO_LED_RELAIS, 1);
-    gpio_set_level(GPIO_HEIZMATTE_RELAIS, 0);
+    gpio_set_level(GPIO_HEIZMATTE_RELAIS, 1);
 }
 
 
 void app_main(void)
 {
-    int32_t PWMFan0Soll=512;
-    int32_t PWMFan1Soll=1536;
-    int32_t PWMLEDSoll=3072;
-    int32_t PWMHoazLEDSoll=1024;
+    int32_t PWMFan0Soll=1300;           //Zuluft 0 = Vollgas bis 1600, 1300 min zum starten
+    int32_t PWMFan1Soll=800;            //Umluft
+    int32_t PWMLEDSoll=1800;            // 0 Vollgas bis 3600 min, 3400 zum starten
+    int32_t PWMHoazLEDSoll=0;
 
     int32_t PWMFan0Ist=0;
     int32_t PWMFan1Ist=0;
     int32_t PWMLEDIst=0;
     int32_t PWMHoazLEDIst=0;
+    bool    DimLED = false;
+    bool    DimLock = false;
 
     Startup();
 
     while (1)
     {
+        if(gpio_get_level(GPIO_GEBER_TASTER) == 0)
+        {
+            if(!DimLock)
+            {
+                DimLED = ! DimLED;
+                DimLock = true;
+            }
+        }
+        else
+        {
+            DimLock = false;
+        }
+
         if(PWMFan0Soll != PWMFan0Ist)
         {
             ledc_set_duty(LEDC_HIGH_SPEED_MODE, PWM_CHANNEL_FAN0, PWMFan0Soll);
@@ -123,7 +143,16 @@ void app_main(void)
             ledc_update_duty(LEDC_HIGH_SPEED_MODE, PWM_CHANNEL_FAN1);
             PWMFan1Ist = PWMFan1Soll;
         }
-        if(PWMLEDSoll != PWMLEDIst)
+        if(DimLED)
+        {
+            if(PWMLEDIst != LED_DIM)
+            {
+                PWMLEDIst = LED_DIM;
+                ledc_set_duty(LEDC_HIGH_SPEED_MODE, PWM_CHANNEL_LED, PWMLEDIst);
+                ledc_update_duty(LEDC_HIGH_SPEED_MODE, PWM_CHANNEL_LED);
+            }
+        }
+        else if(PWMLEDSoll != PWMLEDIst)
         {
             ledc_set_duty(LEDC_HIGH_SPEED_MODE, PWM_CHANNEL_LED, PWMLEDSoll);
             ledc_update_duty(LEDC_HIGH_SPEED_MODE, PWM_CHANNEL_LED);

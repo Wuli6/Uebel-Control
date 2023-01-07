@@ -5,10 +5,10 @@
     "idf.customExtraVars": "{\"OPENOCD_SCRIPTS\":\"C:\\\\Users\\\\Chris\\\\.espressif\\\\tools\\\\openocd-esp32\\\\v0.11.0-esp32-20211220/openocd-esp32/share/openocd/scripts\",\"IDF_CCACHE_ENABLE\":\"1\"}",
     "idf.espIdfPathWin": "C:\\Users\\Chris\\esp\\esp-idf",
     "idf.openOcdConfigs": [
-        "board/esp32-wrover-JLINK.cfg"
+        "board/esp32-wroom-JLINK.cfg"
     ],
     "idf.portWin": "COM7",
     "idf.pythonBinPathWin": "C:\\Users\\Chris\\.espressif\\python_env\\idf4.4_py3.8_env\\Scripts\\python.exe",
     "idf.toolsPathWin": "C:\\Users\\Chris\\.espressif",
-    "idf.flashType": "UART"
+    "idf.flashType": "JTAG"
 }

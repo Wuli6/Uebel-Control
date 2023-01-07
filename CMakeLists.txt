@@ -7,4 +7,4 @@ cmake_minimum_required(VERSION 3.5)
 list(APPEND EXTRA_COMPONENT_DIRS "source/")
 
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
-project(WuPLC)
+project(ubel-control)
