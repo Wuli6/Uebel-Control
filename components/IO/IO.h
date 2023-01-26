@@ -15,6 +15,7 @@
 #define GPIO_LED_PWM            4
 #define GPIO_FAN0_PWM           32
 #define GPIO_FAN1_PWM           33
+#define GPIO_DISPLAY_PWM        17
 #define GPIO_HOAZLED_PWM        16
 #define GPIO_GEBER_TASTER       25
 
@@ -41,16 +42,17 @@ typedef struct
     IO_PWMChannel_t         Fan1;            //Umluft
     IO_PWMChannel_t         LED;            // 0 Vollgas bis 3600 min, 3400 zum starten
     IO_PWMChannel_t         HoazLED;
+    IO_PWMChannel_t         Display;
 }IO_PWMChannels_t;
 
 
-typedef struct IO_PWMValues
-{
-    int16_t Fan0;           //Zuluft 0 = Vollgas bis 1600, 1300 min zum starten
-    int16_t Fan1;            //Umluft
-    int16_t LED;            // 0 Vollgas bis 3600 min, 3400 zum starten
-    int16_t HoazLED;
-}IO_PWMValues;
+// typedef struct IO_PWMValues
+// {
+//     int16_t Fan0;           //Zuluft 0 = Vollgas bis 1600, 1300 min zum starten
+//     int16_t Fan1;            //Umluft
+//     int16_t LED;            // 0 Vollgas bis 3600 min, 3400 zum starten
+//     int16_t HoazLED;
+// }IO_PWMValues;
 
 extern IO_PWMChannels_t IO_PWMChannels;
 

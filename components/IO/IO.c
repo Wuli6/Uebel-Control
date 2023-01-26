@@ -20,6 +20,7 @@ static ledc_channel_config_t    LEDCChannelFan0;
 static ledc_channel_config_t    LEDCChannelFan1;
 static ledc_channel_config_t    LEDCChannelLED;
 static ledc_channel_config_t    LEDCChannelHoazLED;
+static ledc_channel_config_t    LEDCChannelDisplay;
 
 IO_PWMChannels_t IO_PWMChannels;
 
@@ -56,7 +57,7 @@ void IO_Init()
 
     IO_PWMChannels.Fan0 = (IO_PWMChannel_t){
         .Ist = 0,
-        .Soll = 2047,
+        .Soll = 0,
         .Min = 0,
         .Max = 1600,
         .Start = 1300,
@@ -67,7 +68,7 @@ void IO_Init()
 
     IO_PWMChannels.Fan1 = (IO_PWMChannel_t){
         .Ist = 0,
-        .Soll = 2047,
+        .Soll = 0,
         .Min = 0,
         .Max = 1600,
         .Start = 1300,
@@ -78,7 +79,7 @@ void IO_Init()
 
     IO_PWMChannels.LED = (IO_PWMChannel_t){
         .Ist = 0,
-        .Soll = 4095,
+        .Soll = 0,
         .Min = 0,
         .Max = 3600,
         .Start = 3400,
@@ -97,6 +98,18 @@ void IO_Init()
         .Timer = &LEDCTimer20KHz,
         .Channel = &LEDCChannelHoazLED
     };
+
+    IO_PWMChannels.Display = (IO_PWMChannel_t){
+        .Ist = 0,
+        .Soll = 0,
+        .Min = 0,
+        .Max = 2047,
+        .Start = 1,
+        .Invers = false,
+        .Timer = &LEDCTimer20KHz,
+        .Channel = &LEDCChannelDisplay
+    };
+    
 
     LEDCTimer1_5KHz = (ledc_timer_config_t){
         .speed_mode       = LEDC_HIGH_SPEED_MODE,
@@ -154,12 +167,24 @@ void IO_Init()
         .hpoint         = 0
     };
 
+    LEDCChannelDisplay = (ledc_channel_config_t){
+        .speed_mode     = IO_PWMChannels.Display.Timer->speed_mode,
+        .channel        = LEDC_CHANNEL_4,
+        .timer_sel      = IO_PWMChannels.Display.Timer->timer_num,
+        .intr_type      = LEDC_INTR_DISABLE,
+        .gpio_num       = GPIO_DISPLAY_PWM,
+        .duty           = 0,            // Set duty to 0%
+        .hpoint         = 0
+    };
+    
+
     ledc_timer_config(&LEDCTimer1_5KHz);
     ledc_timer_config(&LEDCTimer20KHz);
     ledc_channel_config(&LEDCChannelFan0);
     ledc_channel_config(&LEDCChannelFan1);
     ledc_channel_config(&LEDCChannelLED);
     ledc_channel_config(&LEDCChannelHoazLED);
+    ledc_channel_config(&LEDCChannelDisplay);
 
     gpio_set_direction(GPIO_LED_RELAIS, GPIO_MODE_OUTPUT);  //LED
     gpio_set_direction(GPIO_HEIZMATTE_RELAIS, GPIO_MODE_OUTPUT);  // Heizmatte

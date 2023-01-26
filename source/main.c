@@ -4,6 +4,7 @@
 
 #include "IO.h"
 #include "RotaryEncoder.h"
+#include "AHT10.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
@@ -17,11 +18,14 @@ rotary_encoder_t *encoder = NULL;
 void Startup()
 {
     IO_Init();
+    AHT10_Init();
+    xTaskCreatePinnedToCore(AHT_Cyclic, "AHT10", 4096, NULL, 5, NULL, 1);
 
     IO_PWMChannels.Fan0.Soll = 1300;
     IO_PWMChannels.Fan1.Soll = 800;
     IO_PWMChannels.LED.Soll = 1800;
     IO_PWMChannels.HoazLED.Soll = 0;
+    IO_PWMChannels.Display.Soll = 1024;
     gpio_set_level(GPIO_LED_RELAIS, 1);
     gpio_set_level(GPIO_HEIZMATTE_RELAIS, 0);
 
@@ -64,5 +68,8 @@ void app_main(void)
         IO_PWMUpdate();
         Counter = encoder->get_counter_value(encoder);
         vTaskDelay(10);
+
+        PIN_FUNC_SELECT
+    
     }
 }
