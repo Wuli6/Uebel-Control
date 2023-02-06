@@ -38,7 +38,8 @@ uint8_t eSensorNormalCmd[3]    = {0xA8, 0x00, 0x00};
 uint8_t eSensorMeasureCmd[3]   = {0xAC, 0x33, 0x00};
 uint8_t eSensorResetCmd        = 0xBA;
 
-float AHT10_Temperature, AHT10_Humidity, AHT10_DewPoint;
+AHT10_Data_t AHT10_Data;
+
 i2c_config_t conf = {
     .mode = I2C_MODE_MASTER,
     .sda_io_num = I2C_MASTER_SDA_IO,
@@ -48,9 +49,6 @@ i2c_config_t conf = {
     .master.clk_speed = I2C_MASTER_FREQ_HZ,
 };
 
-
-
-
 void AHT10_begin()
 {
     uint8_t temp;
@@ -59,27 +57,29 @@ void AHT10_begin()
     i2c_master_read_from_device(I2C_MASTER_NUM, AHT10_SENSOR_ADDR, &temp, 1, I2C_MASTER_TIMEOUT_MS / portTICK_PERIOD_MS);
 }
 
-
-float AHT10_GetDewPoint()
-{
-  // Calculate the intermediate value 'gamma'
-  float gamma = log(AHT10_Humidity / 100) + WATER_VAPOR * AHT10_Temperature / (BAROMETRIC_PRESSURE + AHT10_Temperature);
-  // Calculate dew point in Celsius
-  float dewPoint = BAROMETRIC_PRESSURE * gamma / (WATER_VAPOR - gamma);
-
-  return dewPoint;
-}
-
 void AHT10_readSensor()
 {
     uint8_t temp[6];
+    float gamma = 0;
+    AHT10_Data_t *Data = &AHT10_Data;
 
     i2c_master_write_to_device(I2C_MASTER_NUM, AHT10_SENSOR_ADDR, eSensorMeasureCmd, sizeof(eSensorMeasureCmd), I2C_MASTER_TIMEOUT_MS / portTICK_PERIOD_MS);
     vTaskDelay(200);
     i2c_master_read_from_device(I2C_MASTER_NUM, AHT10_SENSOR_ADDR, &temp[0], 6, I2C_MASTER_TIMEOUT_MS / portTICK_PERIOD_MS);
 
-    AHT10_Humidity = (double)((temp[1] << 12) | (temp[2] << 4) | ((temp[3] >> 4) & 0x0F)) * 0.000095367431640625f;
-    AHT10_Temperature = (double)(((temp[3] & 0x0F) << 16) | (temp[4] << 8) | temp[5]) * 0.00019073486328125f - 50;
+    Data->Humidity = (double)((temp[1] << 12) | (temp[2] << 4) | ((temp[3] >> 4) & 0x0F)) * 0.000095367431640625f;
+    Data->Temperature = (double)(((temp[3] & 0x0F) << 16) | (temp[4] << 8) | temp[5]) * 0.00019073486328125f - 50;
+    gamma = log(Data->Humidity / 100) + WATER_VAPOR * Data->Temperature / (BAROMETRIC_PRESSURE + Data->Temperature);
+    Data->DewPoint = BAROMETRIC_PRESSURE * gamma / (WATER_VAPOR - gamma);
+
+    if(Data->Temperature > Data->TemperatureMax)
+        Data->TemperatureMax = Data->Temperature;
+    if(Data->Temperature < Data->TemperatureMin)
+        Data->TemperatureMin = Data->Temperature;
+    if(Data->Humidity > Data->HumidityMax)
+        Data->HumidityMax = Data->Humidity;
+    if(Data->Humidity < Data->HumidityMin)
+        Data->HumidityMin = Data->Humidity;
 }
 
 uint8_t AHT10_readStatus()
@@ -101,16 +101,26 @@ void AHT10_Init()
     i2c_driver_install(I2C_MASTER_NUM, conf.mode, I2C_MASTER_RX_BUF_DISABLE, I2C_MASTER_TX_BUF_DISABLE, 0);
 }
 
+void AHT10_ResetMinMax()
+{
+    AHT10_Data_t *Data = &AHT10_Data;
+    Data->TemperatureMin = Data->Temperature;
+    Data->TemperatureMax = Data->Temperature;
+    Data->HumidityMin = Data->Humidity;
+    Data->HumidityMax = Data->Humidity;
+}
+
 void AHT_Cyclic(void *arg)
 {
     AHT10_Reset();
     vTaskDelay(20);
     AHT10_begin();
+    AHT10_readSensor();
+    AHT10_ResetMinMax();
 
     while(1)
     {
         AHT10_readSensor();
-        AHT10_DewPoint = AHT10_GetDewPoint();
         vTaskDelay(1000);
     }
 

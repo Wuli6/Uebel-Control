@@ -26,11 +26,11 @@
 
 typedef struct
 {
-    int16_t                 Soll;
-    int16_t                 Ist;
-    int16_t                 Min;           //Zuluft 0 = Vollgas bis 1600, 1300 min zum starten
-    int16_t                 Max;            //Umluft
-    int16_t                 Start;            // 0 Vollgas bis 3600 min, 3400 zum starten
+    uint16_t                Soll;
+    uint16_t                Ist;
+    uint16_t                Min;           //Zuluft 0 = Vollgas bis 1600, 1300 min zum starten
+    uint16_t                Max;            //Umluft
+    uint16_t                Start;            // 0 Vollgas bis 3600 min, 3400 zum starten
     bool                    Invers;
     ledc_timer_config_t    *Timer;
     ledc_channel_config_t  *Channel;

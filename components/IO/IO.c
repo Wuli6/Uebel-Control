@@ -80,7 +80,7 @@ void IO_Init()
     IO_PWMChannels.LED = (IO_PWMChannel_t){
         .Ist = 0,
         .Soll = 0,
-        .Min = 0,
+        .Min = 700,
         .Max = 3600,
         .Start = 3400,
         .Invers = true,
